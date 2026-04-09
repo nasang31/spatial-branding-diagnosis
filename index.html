@@ -7,10 +7,10 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
   :root {
-    --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;--border:#2e2e2e;
-    --accent:#c8f55a;--accent2:#5af5c8;--accent3:#f5a55a;
-    --text:#f0f0f0;--text2:#888;--text3:#555;
-    --danger:#f55a5a;--warn:#f5c85a;--success:#5af59a;--radius:12px;
+    --bg:#f5f0e8;--bg2:#ffffff;--bg3:#ede8df;--border:#e0d9ce;
+    --accent:#c17f3e;--accent2:#3e7fc1;--accent3:#7fc13e;
+    --text:#1a1814;--text2:#6b6560;--text3:#a09890;
+    --danger:#c14040;--warn:#c18040;--success:#3e9960;--radius:12px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
@@ -25,18 +25,18 @@
   .login-logo .sub{font-size:12px;color:var(--text2);margin-top:0.5rem;}
   .login-tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;}
   .login-tab{flex:1;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:all 0.2s;text-align:center;}
-  .login-tab.active{background:var(--accent);border-color:var(--accent);color:#0f0f0f;font-weight:700;}
+  .login-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
   .form-group{margin-bottom:1rem;}
   .form-group label{display:block;font-size:11px;color:var(--text2);margin-bottom:0.4rem;letter-spacing:0.05em;}
   .form-group input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color 0.2s;}
   .form-group input:focus{border-color:var(--accent);}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1.5rem;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;}
-  .btn-primary{background:var(--accent);color:#0f0f0f;width:100%;}
-  .btn-primary:hover{background:#d4ff6a;}
+  .btn-primary{background:var(--accent);color:#fff;width:100%;}
+  .btn-primary:hover{background:#a86d32;}
   .btn-admin{background:var(--accent3);color:#0f0f0f;width:100%;}
   .btn-admin:hover{background:#ffb870;}
-  .btn-accent2{background:var(--accent2);color:#0f0f0f;font-weight:700;}
-  .btn-accent2:hover{background:#6affd8;}
+  .btn-accent2{background:var(--accent2);color:#fff;font-weight:700;}
+  .btn-accent2:hover{background:#3070b0;}
   .btn-accent2:disabled{opacity:0.5;cursor:not-allowed;}
   .btn-danger{background:var(--danger);color:#fff;font-size:12px;padding:0.4rem 0.75rem;}
   .btn-sm{padding:0.4rem 0.75rem;font-size:12px;border-radius:6px;}
@@ -53,7 +53,7 @@
   .stage-nav{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;padding-bottom:0.25rem;}
   .stage-btn{display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.6rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;min-width:90px;font-family:inherit;color:var(--text2);flex-shrink:0;}
   .stage-btn:hover{border-color:var(--text2);color:var(--text);}
-  .stage-btn.active{background:var(--accent);border-color:var(--accent);color:#0f0f0f;}
+  .stage-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
   .stage-btn.completed{border-color:var(--success);color:var(--success);}
   .stage-btn .stage-num{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.05em;}
   .stage-btn .stage-name{font-size:11px;font-weight:500;text-align:center;line-height:1.3;}
@@ -226,7 +226,7 @@
 <script>
 const SUPABASE_URL='https://xbgoxwlplsuxazrbsqly.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiZ294d2xwbHN1eGF6cmJzcWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzQwNDQsImV4cCI6MjA5MTI1MDA0NH0.HPVdlebavUu-jJzdp2eAWQChUsbPdcVcxL3vMz_NDe0';
-const GEMINI_KEY='AIzaSyCpLSqlaeRn1X8tT2cxITsZMsLncEz-yxU';
+const GEMINI_KEY='YOUR_GEMINI_API_KEY';
 const ADMIN_PASSWORD='kaywon2026!';
 
 const STAGES=[
