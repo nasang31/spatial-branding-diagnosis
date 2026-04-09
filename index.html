@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spatial Branding I — AI 자가진단 시스템</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg:#f5f0e8;--bg2:#ffffff;--bg3:#ede8df;--border:#e0d9ce;
+    --accent:#c17f3e;--accent2:#3e7fc1;--accent3:#7fc13e;
+    --text:#1a1814;--text2:#6b6560;--text3:#a09890;
+    --danger:#c14040;--warn:#c18040;--success:#3e9960;--radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.7;}
+  .screen{display:none;min-height:100vh;}
+  .screen.active{display:flex;flex-direction:column;}
+  #screen-login{align-items:center;justify-content:center;padding:2rem;}
+  #screen-login.hidden-init{display:none!important;}
+  .login-box{width:100%;max-width:420px;}
+  .login-logo{margin-bottom:2.5rem;}
+  .login-logo .school{font-size:12px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .login-logo h1{font-size:26px;font-weight:700;line-height:1.3;}
+  .login-logo h1 span{color:var(--accent);}
+  .login-logo .sub{font-size:13px;color:var(--text2);margin-top:0.5rem;}
+  .form-group{margin-bottom:1rem;}
+  .form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:0.4rem;letter-spacing:0.05em;}
+  .form-group input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.85rem 1rem;color:var(--text);font-family:inherit;font-size:16px;outline:none;transition:border-color 0.2s;}
+  .form-group input:focus{border-color:var(--accent);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.85rem 1.5rem;border-radius:8px;font-family:inherit;font-size:16px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;}
+  .btn-primary{background:var(--accent);color:#fff;width:100%;}
+  .btn-primary:hover{background:#a86d32;}
+  .btn-accent2{background:var(--accent2);color:#fff;font-weight:700;width:100%;}
+  .btn-accent2:hover{background:#3070b0;}
+  .btn-accent2:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn-next{background:var(--success);color:#fff;font-weight:700;flex:1;border:none;border-radius:8px;padding:0.85rem 1rem;font-family:inherit;font-size:15px;cursor:pointer;transition:all 0.2s;}
+  .btn-next:hover{background:#2d8050;}
+  .btn-retry{background:var(--bg3);color:var(--text);border:1px solid var(--border);flex:1;border-radius:8px;padding:0.85rem 1rem;font-family:inherit;font-size:15px;cursor:pointer;transition:all 0.2s;}
+  .btn-retry:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-retry:disabled{opacity:0.5;cursor:not-allowed;}
+  .error-msg{color:var(--danger);font-size:13px;margin-top:0.75rem;text-align:center;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .topbar-left{display:flex;align-items:center;gap:1rem;}
+  .topbar-title{font-size:14px;font-weight:700;color:var(--accent);}
+  .topbar-sub{font-size:13px;color:var(--text2);}
+  .btn-logout{background:none;border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.75rem;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:all 0.2s;}
+  .btn-logout:hover{border-color:var(--text2);color:var(--text);}
+  .main-content{flex:1;padding:1.5rem;max-width:820px;margin:0 auto;width:100%;}
+  .stage-nav{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;padding-bottom:0.25rem;}
+  .stage-btn{display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.6rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;min-width:95px;font-family:inherit;color:var(--text2);flex-shrink:0;}
+  .stage-btn:hover{border-color:var(--accent2);color:var(--text);}
+  .stage-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .stage-btn.completed{border-color:var(--success);color:var(--success);}
+  .stage-btn.locked{opacity:0.5;cursor:default;}
+  .stage-btn.locked:hover{border-color:var(--border);color:var(--text2);}
+  .stage-btn .stage-num{font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.05em;}
+  .stage-btn .stage-name{font-size:12px;font-weight:500;text-align:center;line-height:1.3;}
+  .stage-btn .stage-dots{display:flex;gap:3px;margin-top:2px;}
+  .stage-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.3;}
+  .stage-dot.used{opacity:1;}
+  .stage-panel{display:none;}
+  .stage-panel.active{display:block;}
+  .panel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;gap:1rem;}
+  .panel-title{font-size:20px;font-weight:700;margin-bottom:0.3rem;}
+  .panel-sub{font-size:13px;color:var(--text2);}
+  .attempt-badge{display:flex;flex-direction:column;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:0.6rem 1rem;flex-shrink:0;min-width:80px;}
+  .attempt-badge .num{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;line-height:1;}
+  .attempt-badge .label{font-size:11px;color:var(--text2);margin-top:2px;}
+  .attempt-dots{display:flex;gap:6px;margin-bottom:1.5rem;}
+  .attempt-dot{width:10px;height:10px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);}
+  .attempt-dot.used{background:var(--accent);border-color:var(--accent);}
+  .attempt-dot.current{background:var(--accent2);border-color:var(--accent2);}
+  .items-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.5rem;overflow:hidden;}
+  .items-list-title{padding:0.75rem 1rem;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;}
+  .item-row{display:flex;align-items:center;gap:0.75rem;padding:0.7rem 1rem;border-bottom:1px solid var(--border);font-size:15px;}
+  .item-row:last-child{border-bottom:none;}
+  .item-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);min-width:28px;}
+  .item-name{flex:1;color:var(--text2);}
+  .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:1rem;background:var(--bg2);}
+  .upload-zone:hover{border-color:var(--accent);}
+  .upload-zone.dragover{border-color:var(--accent);background:rgba(193,127,62,0.05);}
+  .upload-zone.has-file{border-color:var(--success);border-style:solid;}
+  .upload-icon{font-size:36px;margin-bottom:0.75rem;color:var(--text3);}
+  .upload-text{font-size:15px;color:var(--text2);margin-bottom:0.4rem;}
+  .upload-sub{font-size:13px;color:var(--text3);}
+  .upload-filename{font-size:14px;color:var(--success);margin-top:0.5rem;font-weight:500;}
+  .lock-box{background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.5rem;}
+  .lock-icon{font-size:32px;margin-bottom:0.5rem;}
+  .lock-text{font-size:14px;color:var(--text2);line-height:1.6;}
+  .lock-text strong{color:var(--accent);font-weight:600;}
+  .action-area{display:flex;gap:0.75rem;margin-bottom:1.5rem;}
+  .result-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-top:1.5rem;}
+  .result-section{margin-bottom:1.5rem;}
+  .result-section:last-child{margin-bottom:0;}
+  .result-section-title{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+  .result-text{font-size:15px;color:var(--text2);line-height:1.9;white-space:normal;word-break:keep-all;overflow-wrap:break-word;}
+  .history-section{margin-top:1.5rem;}
+  .history-title{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+  .history-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:0.6rem;overflow:hidden;}
+  .history-header{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1rem;cursor:pointer;transition:background 0.2s;}
+  .history-header:hover{background:var(--bg3);}
+  .history-round{font-size:13px;font-weight:700;color:var(--accent);}
+  .history-symbols{font-size:13px;letter-spacing:1px;flex:1;text-align:center;}
+  .history-date{font-size:12px;color:var(--text3);}
+  .history-toggle{font-size:12px;color:var(--text3);margin-left:0.5rem;}
+  .history-body{display:none;padding:1rem;border-top:1px solid var(--border);font-size:15px;color:var(--text2);line-height:1.9;white-space:normal;word-break:keep-all;}
+  .history-body.open{display:block;}
+  .history-sub-title{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.4rem;margin-top:0.75rem;}
+  .history-sub-title:first-child{margin-top:0;}
+  .final-screen{text-align:center;padding:2rem 0;}
+  .final-icon{font-size:48px;margin-bottom:1rem;}
+  .final-title{font-size:22px;font-weight:700;margin-bottom:0.5rem;}
+  .final-sub{font-size:14px;color:var(--text2);margin-bottom:2rem;}
+  .final-grid{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:2rem;text-align:left;}
+  .final-row{display:flex;align-items:center;gap:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:0.8rem 1rem;}
+  .final-stage-label{font-size:12px;font-weight:700;color:var(--text2);min-width:120px;}
+  .final-symbols{font-size:14px;letter-spacing:2px;flex:1;}
+  .final-msg{background:var(--bg3);border-radius:var(--radius);padding:1.25rem;font-size:13px;color:var(--text2);line-height:1.8;text-align:left;}
+  .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
+  .loading-overlay.visible{display:flex;}
+  .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{font-size:14px;color:var(--text2);}
+  .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);border-radius:8px;padding:0.75rem 1.25rem;font-size:13px;color:var(--bg);opacity:0;transition:all 0.3s;z-index:1000;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">처리 중...</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="screen" id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="school">Kaywon University of Art and Design</div>
+      <h1>공간브랜딩 I<br><span>AI 자가진단 시스템</span></h1>
+      <div class="sub">Dramatic Space Creation</div>
+    </div>
+    <div class="form-group"><label>ID</label><input type="text" id="input-student-number" placeholder="ID를 입력하세요"/></div>
+    <div class="form-group"><label>비밀번호</label><input type="password" id="input-password" placeholder="비밀번호를 입력하세요"/></div>
+    <button class="btn btn-primary" id="btn-login">로그인</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<div class="screen" id="screen-main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Spatial Branding I — AI 자가진단</div>
+      <div class="topbar-sub" id="topbar-student-name"></div>
+    </div>
+    <button class="btn-logout" id="btn-logout">로그아웃</button>
+  </div>
+  <div class="main-content">
+    <div class="stage-nav" id="stage-nav"></div>
+    <div id="stage-panels"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://xbgoxwlplsuxazrbsqly.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiZ294d2xwbHN1eGF6cmJzcWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzQwNDQsImV4cCI6MjA5MTI1MDA0NH0.HPVdlebavUu-jJzdp2eAWQChUsbPdcVcxL3vMz_NDe0';
+const GEMINI_KEY='';
+
+const STAGES=[
+  {num:1,name:'브랜드 분석',items:[{num:'01',name:'브랜드 선정 이유'},{num:'02',name:'정체성 분석'},{num:'03',name:'선행 사례 분석'},{num:'04',name:'환경 분석'}]},
+  {num:2,name:'팝업 기획',items:[{num:'05',name:'타겟 설정'},{num:'06',name:'목적 설정'},{num:'07',name:'장소 선정'},{num:'08',name:'시간 설정'},{num:'09',name:'내용 설정'},{num:'10',name:'조닝 설정'}]},
+  {num:3,name:'디자인 구상',items:[{num:'11',name:'콘셉트 도출'},{num:'12',name:'레퍼런스 조사'},{num:'13',name:'아이디어 스케치'},{num:'14',name:'무드보드 제작'}]},
+  {num:4,name:'3D 연출',items:[{num:'15',name:'공간 마스터 조감'},{num:'16',name:'아이레벨 투시'},{num:'17',name:'공간 연출 상세'}]},
+  {num:5,name:'도면',items:[{num:'18',name:'평면도'},{num:'19',name:'입면도'},{num:'20',name:'상세 제작도'}]},
+  {num:6,name:'FINAL 심사',items:[{num:'F1',name:'기획-공간 일관성'},{num:'F2',name:'물리적·상업적 현실성'},{num:'F3',name:'스토리텔링 논리'}]}
+];
+const SCORE_MAX=[0,8,12,8,6,6,6];
+
+let currentStudent=null;
+let stageAttempts={1:0,2:0,3:0,4:0,5:0,6:0};
+let currentStage=1;
+let unlockedStage=1;
+let stageHistory={1:[],2:[],3:[],4:[],5:[],6:[]};
+
+async function sbFetch(path,opts={}){
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{
+    headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=representation',...opts.headers},
+    ...opts
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||`HTTP ${r.status}`);}
+  const t=await r.text();return t?JSON.parse(t):[];
+}
+
+async function getStudent(n,p){
+  const d=await sbFetch(`students?student_number=eq.${encodeURIComponent(n)}&password=eq.${encodeURIComponent(p)}&select=*`);
+  return d[0]||null;
+}
+
+async function getAttemptCounts(sid){
+  const d=await sbFetch(`attempts?student_id=eq.${sid}&select=stage_num,attempt_num`);
+  const c={1:0,2:0,3:0,4:0,5:0,6:0};
+  d.forEach(r=>{c[r.stage_num]=Math.max(c[r.stage_num],r.attempt_num);});
+  return c;
+}
+
+async function getStudentHistory(sid){
+  const d=await sbFetch(`attempts?student_id=eq.${sid}&select=stage_num,attempt_num,ai_feedback,counts_json,created_at&order=created_at.asc`);
+  const h={1:[],2:[],3:[],4:[],5:[],6:[]};
+  d.forEach(r=>{
+    if(h[r.stage_num])h[r.stage_num].push({
+      attempt_num:r.attempt_num,
+      feedback:r.ai_feedback||'',
+      counts:r.counts_json||{pass:0,warn:0,fail:0},
+      created_at:r.created_at
+    });
+  });
+  return h;
+}
+
+async function getUnlockedStage(sid){
+  const d=await sbFetch(`students?id=eq.${sid}&select=current_stage`);
+  return d[0]?.current_stage||1;
+}
+
+async function updateUnlockedStage(sid,stageNum){
+  try{await sbFetch(`students?id=eq.${sid}`,{method:'PATCH',body:JSON.stringify({current_stage:stageNum})});}
+  catch(e){console.warn('current_stage 업데이트 실패:',e.message);}
+}
+
+async function saveAttempt(sid,sn,an,fb,cj,ct,st,sm,wi){
+  const d=await sbFetch('attempts',{method:'POST',body:JSON.stringify({student_id:sid,stage_num:sn,attempt_num:an,ai_feedback:fb,counts_json:cj,conflict_tags:ct,score_total:st,score_max:sm,weak_items_json:wi})});
+  return d[0];
+}
+
+async function saveItemScores(aid,scores){
+  await sbFetch('item_scores',{method:'POST',body:JSON.stringify(scores.map((s,i)=>({attempt_id:aid,item_num:i+1,score:s})))});
+}
+
+async function callGemini(pdfBase64,stageNum,attemptNum){
+  const s=STAGES[stageNum-1];
+  let prompt='';
+
+  if(stageNum===6){
+    // 🏆 FINAL STAGE 전용 프롬프트
+    prompt=`# ROLE & PURPOSE
+너는 공간브랜딩 수업 3학년 학생들의 최종 결과물을 종합 평가하는 수석 심사위원(AI)이다.
+학생들은 STAGE 1~5를 거쳐 최종 기획안과 도면이 담긴 PDF를 제출했다.
+
+# CORE RULES
+1. 이 평가는 단 1회만 제공되는 '최종 모의 심사'다.
+2. 개별 항목의 유무가 아니라, 전체 프로젝트를 관통하는 '논리적 일관성'과 '설득력'을 냉정하게 평가하라.
+3. 긍정적인 평가는 짧게, 제출 전 반드시 점검해야 할 치명적 모순이나 현실성 결여는 매우 날카롭게 지적하라.
+
+# 평가 대상: FINAL STAGE
+F1. 기획-공간 일관성: STAGE 1~2의 기획 목적과 타겟이 STAGE 4~5의 공간 디자인과 도면에 논리적으로 반영되었는가?
+F2. 물리적/상업적 현실성: 팝업 스토어로서 실제 구현 가능한 스케일과 동선, 상업적 효용성을 갖추었는가?
+F3. 스토리텔링 논리: 누군가에게 이 공간을 프레젠테이션할 때, 흐름이 끊기지 않고 매끄럽게 설득되는가?
+
+# OUTPUT FORMAT (존댓말)
+**[종합 평가]**
+(전체적인 완성도와 제출 전 당부의 말 2~3줄)
+
+**[강점]**
+(가장 일관성 있고 돋보이는 기획-디자인 연결성 1~2줄)
+
+**[개선 사항]**
+(제출 전 반드시 점검해야 할 치명적인 논리적 모순이나 현실성 문제. 없으면 '완벽합니다' 출력)
+
+# 데이터 출력 필수 (마지막 줄)
+[JSON_DATA] { "item_scores": [0,0,0], "tags": [] }
+item_scores: F1, F2, F3 순서대로 우수=2 보통=1 미흡=0
+tags: #LOGIC_GAP #PHYSICAL_CONFLICT #TARGET_MISMATCH #SCALE_ERROR #ETHICS_FLAG 중 해당없으면 []`;
+
+  } else {
+    // 기존 STAGE 1~5 프롬프트
+    const al=attemptNum===1?'1회차':attemptNum===2?'2회차':'3회차(마지막)';
+    prompt=`# ROLE & PURPOSE
+너는 공간브랜딩 수업 3학년 학생들을 지도하는 AI 튜터다.
+학생들은 디자인 숙련도는 높으나 상업적 브랜딩 논리는 처음 접하는 입문자들이다.
+
+# CORE RULES
+1. PDF 내용 기반 평가. 명백한 상업적 비현실성은 질문으로 지적.
+2. STAGE 2부터 누적 PDF 제출. 이전 기획 논리와 일관성 검증. 설득력 약화 시 재설정 필요성을 질문으로 드러내라.
+3. 현재 ${al}: 1회차-격려+최소가이드 / 2회차-질문중심 / 3회차-엄격심사
+4. 전 항목 Conflict 체크. 취향·스타일은 개입 금지.
+5. 누락=내용없음 / 보완=있으나부족
+6. 정답 금지. 질문으로 유도. 1회차는 최소 가이드 허용.
+7. 윤리·종교·문화 편향 시 질문으로 환기.
+8. 보완 이유 한 문장 설명 후 질문.
+
+# 평가 대상: STAGE ${stageNum} — ${s.name}
+${s.items.map(i=>`${i.num}. ${i.name}`).join('\n')}
+
+# OUTPUT FORMAT (존댓말)
+**[진단 결과]**
+(각 항목: 완료=✅ / 보완=⚠️ / 누락=❌)
+
+**[강점]**
+(논리성·일관성 긍정 부분 1~2줄)
+
+**[개선 사항]**
+(보완·누락 항목: 이유 한 문장 + 질문 형태 피드백)
+
+# 데이터 출력 필수 (마지막 줄)
+[JSON_DATA] { "item_scores": [${s.items.map(()=>0).join(',')}], "tags": [] }
+item_scores: ${s.items.length}개 순서대로 완료=2 보완=1 누락=0
+tags: #LOGIC_GAP #PHYSICAL_CONFLICT #TARGET_MISMATCH #SCALE_ERROR #ETHICS_FLAG 중 해당없으면 []`;
+  }
+
+  const evalText=stageNum===6?'FINAL 종합 심사.':'`STAGE ${stageNum} 평가. 현재 ${stageNum<=5?(attemptNum===1?\'1회차\':attemptNum===2?\'2회차\':\'3회차\'):\'\'}.`';
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${GEMINI_KEY}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'application/pdf',data:pdfBase64}},{text:stageNum===6?'FINAL 종합 심사를 진행하세요.':`STAGE ${stageNum} 평가. 현재 ${attemptNum===1?'1회차':attemptNum===2?'2회차':'3회차(마지막)'}.`}]}],generationConfig:{maxOutputTokens:3000,temperature:0.1}})
+  });
+  if(!r.ok){
+    const errText=await r.text();
+    let eMsg=errText;
+    try{const j=JSON.parse(errText);eMsg=j.error?.message||errText;}catch(e){}
+    throw new Error(eMsg);
+  }
+  const d=await r.json();return d.candidates[0].content.parts[0].text;
+}
+
+function parseFeedback(text){
+  const m=text.match(/\[JSON_DATA\]\s*(\{[\s\S]*?\})\s*$/);
+  let itemScores=[],tags=[],cleanText=text;
+  if(m){
+    try{const p=JSON.parse(m[1]);itemScores=p.item_scores||[];tags=p.tags||[];}catch(e){}
+    cleanText=text.replace(/\[JSON_DATA\][\s\S]*$/,'').trim();
+  }
+  return{cleanText,itemScores,tags};
+}
+
+function extractSections(text){
+  const dm=text.match(/\*?\*?\[진단 결과\]\*?\*?([\s\S]*?)(?=\*?\*?\[강점\]\*?\*?|$)/);
+  const gm=text.match(/\*?\*?\[강점\]\*?\*?([\s\S]*?)(?=\*?\*?\[개선 사항\]\*?\*?|$)/);
+  const fm=text.match(/\*?\*?\[개선 사항\]\*?\*?([\s\S]*?)(?=\[JSON_DATA\]|$)/);
+  return{
+    diagnose:dm?dm[1].trim():'',
+    good:gm?gm[1].trim():'',
+    fix:fm?fm[1].trim():''
+  };
+}
+
+function toHtml(t){
+  if(!t)return'';
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+}
+
+function symbolsFromCounts(counts){
+  if(!counts)return'';
+  return '✅'.repeat(counts.pass||0)+'⚠️'.repeat(counts.warn||0)+'❌'.repeat(counts.fail||0);
+}
+
+function renderStageNav(){
+  document.getElementById('stage-nav').innerHTML=STAGES.map(s=>{
+    const used=stageAttempts[s.num]||0;
+    const isActive=s.num===currentStage;
+    const isLocked=s.num>unlockedStage;
+    const isCompleted=used>=3;
+    const dots=[1,2,3].map(i=>`<div class="stage-dot ${i<=used?'used':''}"></div>`).join('');
+    return `<button class="stage-btn ${isActive?'active':''} ${isCompleted&&!isLocked?'completed':''} ${isLocked?'locked':''}"
+      onclick="switchStage(${s.num})">
+      <span class="stage-num">${isLocked?'🔒 ':''}STAGE ${s.num}</span>
+      <span class="stage-name">${s.name}</span>
+      <span class="stage-dots">${dots}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderStagePanels(){
+  document.getElementById('stage-panels').innerHTML=STAGES.map(s=>{
+    const used=stageAttempts[s.num]||0;
+    const maxAttempts=s.num===6?1:3;
+    const remaining=maxAttempts-used;
+    const isActive=s.num===currentStage;
+    const isLocked=s.num>unlockedStage;
+    const rc=remaining===0?'var(--text3)':remaining===1?'var(--warn)':'var(--accent2)';
+    const items=s.items.map(i=>`<div class="item-row"><span class="item-num">${i.num}</span><span class="item-name">${i.name}</span></div>`).join('');
+    const dots=Array.from({length:maxAttempts},(_,i)=>`<div class="attempt-dot ${i+1<=used?'used':''} ${i+1===used+1&&remaining>0?'current':''}"></div>`).join('');
+    const history=stageHistory[s.num]||[];
+
+    const historyHtml=history.length>0?`
+      <div class="history-section">
+        <div class="history-title">진단 기록 (${history.length}회차)</div>
+        ${history.map((h,idx)=>{
+          const sec=extractSections(h.feedback);
+          const date=new Date(h.created_at).toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+          const isLastH=idx===history.length-1;
+          return `<div class="history-item">
+            <div class="history-header" onclick="toggleHistory('hist-${s.num}-${idx}')">
+              <span class="history-round">${h.attempt_num}회차</span>
+              <span class="history-symbols">${symbolsFromCounts(h.counts)}</span>
+              <span class="history-date">${date}</span>
+              <span class="history-toggle">${isLastH?'▲':'▼'}</span>
+            </div>
+            <div class="history-body ${isLastH?'open':''}" id="hist-${s.num}-${idx}">
+              ${sec.diagnose?`<div class="history-sub-title">진단 결과</div><div>${toHtml(sec.diagnose)}</div>`:''}
+              ${sec.good?`<div class="history-sub-title">강점</div><div>${toHtml(sec.good)}</div>`:''}
+              ${sec.fix?`<div class="history-sub-title">개선 사항</div><div>${toHtml(sec.fix)}</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`:'';
+
+    // 잠긴 스테이지 - 항목 구경 가능, PDF 영역에 안내 문구
+    if(isLocked){
+      return `<div class="stage-panel ${isActive?'active':''}" id="panel-${s.num}">
+        <div class="panel-header">
+          <div><div class="panel-title">STAGE ${s.num} — ${s.name}</div>
+          <div class="panel-sub">STAGE 1~${s.num} 내용이 모두 포함된 PDF를 제출하세요.</div></div>
+        </div>
+        <div class="items-list"><div class="items-list-title" style="display:flex;justify-content:space-between;align-items:center;"><span>이번 단계 평가 항목 (${s.items.length}개)</span><span style="font-size:11px;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0;">✅ 완료 &nbsp; ⚠️ 보완 &nbsp; ❌ 누락</span></div>${items}</div>
+        <div class="lock-box">
+          <div class="lock-icon">🔒</div>
+          <div class="lock-text"><strong>STAGE ${s.num-1}</strong>을 먼저 완료해야 진단을 받을 수 있어요.<br>이전 단계에서 1회 이상 진단을 받으면 자동으로 열립니다.</div>
+        </div>
+      </div>`;
+    }
+
+    // 횟수 소진
+    if(remaining===0){
+      const isLast=s.num===6;
+      const nextBtn=isLast
+        ?`<div style="width:100%;text-align:center;padding:1.25rem;background:var(--bg3);border-radius:10px;font-size:15px;color:var(--success);font-weight:700;line-height:1.6;">🎉 모든 평가가 완료되었습니다!<br><span style="font-size:13px;font-weight:400;color:var(--text2);">결과 레포트를 확인하고 교수님께 최종 제출하세요.</span></div>`
+        :`<button class="btn-next" onclick="moveToNextStage(${s.num+1})">${s.num===5?'🏆 FINAL 심사로 넘어가기 →':`STAGE ${s.num+1}로 넘어가기 →`}</button>`;
+      const panelTitle=s.num===6?'🏆 FINAL 심사':`STAGE ${s.num} — ${s.name}`;
+      const panelSub=s.num===6?'STAGE 1~5 전체 내용이 담긴 최종 PDF를 제출하세요. (1회 한정)':s.num===1?'PDF를 업로드하여 AI 자가진단을 시작하세요.':`STAGE 1~${s.num} 내용이 모두 포함된 PDF를 제출하세요.`;
+      return `<div class="stage-panel ${isActive?'active':''}" id="panel-${s.num}">
+        <div class="panel-header">
+          <div><div class="panel-title">${panelTitle}</div>
+          <div class="panel-sub">${panelSub}</div></div>
+          <div class="attempt-badge"><span class="num" style="color:var(--text3)">0</span><span class="label">남은 횟수</span></div>
+        </div>
+        <div class="attempt-dots">${dots}</div>
+        <div class="items-list"><div class="items-list-title" style="display:flex;justify-content:space-between;align-items:center;"><span>평가 항목 (${s.items.length}개)</span><span style="font-size:11px;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0;">✅ 완료 &nbsp; ⚠️ 보완 &nbsp; ❌ 누락</span></div>${items}</div>
+        <div class="action-area">${nextBtn}</div>
+        ${historyHtml}
+      </div>`;
+    }
+
+    // 진단 가능 — 첫 진단 전
+    const panelTitle0=s.num===6?'🏆 FINAL 심사':`STAGE ${s.num} — ${s.name}`;
+    const panelSub0=s.num===6?'STAGE 1~5 전체 내용이 담긴 최종 PDF를 제출하세요. (1회 한정)':s.num===1?'PDF를 업로드하여 AI 자가진단을 시작하세요.':`STAGE 1~${s.num} 내용이 모두 포함된 PDF를 제출하세요.`;
+    const btnLabel0=s.num===6?'🏆 FINAL 종합 심사 시작 →':'AI 자가진단 시작 →';
+    if(used===0){
+      return `<div class="stage-panel ${isActive?'active':''}" id="panel-${s.num}">
+        <div class="panel-header">
+          <div><div class="panel-title">${panelTitle0}</div>
+          <div class="panel-sub">${panelSub0}</div></div>
+          <div class="attempt-badge"><span class="num" style="color:${rc}">${remaining}</span><span class="label">남은 횟수</span></div>
+        </div>
+        <div class="attempt-dots">${dots}</div>
+        <div class="items-list"><div class="items-list-title" style="display:flex;justify-content:space-between;align-items:center;"><span>평가 항목 (${s.items.length}개)</span><span style="font-size:11px;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0;">✅ 완료 &nbsp; ⚠️ 보완 &nbsp; ❌ 누락</span></div>${items}</div>
+        <div class="upload-zone" id="upload-zone-${s.num}" onclick="document.getElementById('file-input-${s.num}').click()"
+          ondragover="handleDragOver(event,${s.num})" ondragleave="handleDragLeave(event,${s.num})" ondrop="handleDrop(event,${s.num})">
+          <input type="file" id="file-input-${s.num}" accept=".pdf" style="display:none" onchange="handleFileSelect(event,${s.num})">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">PDF 파일을 클릭하거나 드래그하여 업로드</div>
+          <div class="upload-sub">최대 50MB · PDF 형식 · 이미지 72~96dpi 권장</div>
+          <div class="upload-filename" id="filename-${s.num}"></div>
+        </div>
+        <button class="btn btn-accent2" id="btn-diagnose-${s.num}" onclick="runDiagnosis(${s.num})" disabled>${btnLabel0}</button>
+        <div class="result-box" id="result-box-${s.num}" style="display:none">
+          <div class="result-section" id="result-diagnose-${s.num}"></div>
+          <div class="result-section" id="result-good-${s.num}"></div>
+          <div class="result-section" id="result-fix-${s.num}"></div>
+        </div>
+      </div>`;
+    }
+
+    // 진단 가능 — 1회 이상 진단 후
+    const isLast=s.num===6;
+    const panelTitle1=s.num===6?'🏆 FINAL 심사':`STAGE ${s.num} — ${s.name}`;
+    const panelSub1=s.num===6?'STAGE 1~5 전체 내용이 담긴 최종 PDF를 제출하세요. (1회 한정)':s.num===1?'PDF를 업로드하여 AI 자가진단을 시작하세요.':`STAGE 1~${s.num} 내용이 모두 포함된 PDF를 제출하세요.`;
+    return `<div class="stage-panel ${isActive?'active':''}" id="panel-${s.num}">
+      <div class="panel-header">
+        <div><div class="panel-title">${panelTitle1}</div>
+        <div class="panel-sub">${panelSub1}</div></div>
+        <div class="attempt-badge"><span class="num" style="color:${rc}">${remaining}</span><span class="label">남은 횟수</span></div>
+      </div>
+      <div class="attempt-dots">${dots}</div>
+      <div class="items-list"><div class="items-list-title" style="display:flex;justify-content:space-between;align-items:center;"><span>평가 항목 (${s.items.length}개)</span><span style="font-size:11px;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0;">✅ 완료 &nbsp; ⚠️ 보완 &nbsp; ❌ 누락</span></div>${items}</div>
+      <div class="upload-zone" id="upload-zone-${s.num}" onclick="document.getElementById('file-input-${s.num}').click()"
+        ondragover="handleDragOver(event,${s.num})" ondragleave="handleDragLeave(event,${s.num})" ondrop="handleDrop(event,${s.num})">
+        <input type="file" id="file-input-${s.num}" accept=".pdf" style="display:none" onchange="handleFileSelect(event,${s.num})">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">PDF 파일을 클릭하거나 드래그하여 업로드</div>
+        <div class="upload-sub">최대 50MB · PDF 형식 · 이미지 72~96dpi 권장</div>
+        <div class="upload-filename" id="filename-${s.num}"></div>
+      </div>
+      <div class="action-area">
+        <button class="btn-retry" id="btn-diagnose-${s.num}" onclick="runDiagnosis(${s.num})" disabled>다시 검사 받기 (${used+1}회차)</button>
+        ${isLast
+          ?`<button class="btn-next" onclick="showFinalResult()" style="background:var(--accent)">🎉 최종 결과 보기</button>`
+          :`<button class="btn-next" onclick="moveToNextStage(${s.num+1})">${s.num===5?'🏆 FINAL 심사로 넘어가기 →':`STAGE ${s.num+1}로 넘어가기 →`}</button>`
+        }
+      </div>
+      <div class="result-box" id="result-box-${s.num}" style="display:none">
+        <div class="result-section" id="result-diagnose-${s.num}"></div>
+        <div class="result-section" id="result-good-${s.num}"></div>
+        <div class="result-section" id="result-fix-${s.num}"></div>
+      </div>
+      ${historyHtml}
+    </div>`;
+  }).join('');
+}
+
+function toggleHistory(id){
+  const el=document.getElementById(id);
+  if(el)el.classList.toggle('open');
+}
+
+function switchStage(num){
+  currentStage=num;
+  document.querySelectorAll('.stage-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.stage-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`panel-${num}`)?.classList.add('active');
+  document.querySelectorAll('.stage-btn')[num-1]?.classList.add('active');
+  renderStageNav();
+}
+
+async function moveToNextStage(nextNum){
+  if(nextNum>6){showFinalResult();return;}
+  if(nextNum>unlockedStage){
+    unlockedStage=nextNum;
+    await updateUnlockedStage(currentStudent.id,nextNum);
+  }
+  currentStage=nextNum;
+  renderStageNav();
+  renderStagePanels();
+  switchStage(nextNum);
+  window.scrollTo({top:0,behavior:'smooth'});
+  const msg=nextNum===6?'🏆 FINAL 심사로 이동했어요!':`STAGE ${nextNum}로 이동했어요!`;
+  showToast(msg);
+}
+
+function showFinalResult(){
+  document.getElementById('stage-nav').style.display='none';
+  document.getElementById('stage-panels').innerHTML=`<div class="final-screen">
+    <div class="final-icon">🎉</div>
+    <div class="final-title">모든 단계 완료!</div>
+    <div class="final-sub">5단계 전체 자가진단이 끝났어요.<br>아래 내용을 확인하고 교수님께 최종 제출을 준비하세요.</div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:12px;color:var(--text2);display:flex;gap:1.5rem;justify-content:center;">
+      <span>✅ <strong>완료</strong> — 잘 정리됨</span>
+      <span>⚠️ <strong>보완</strong> — 수정 필요</span>
+      <span>❌ <strong>누락</strong> — 반드시 추가</span>
+    </div>
+
+    <div class="final-grid">
+      ${STAGES.map(s=>{
+        const history=stageHistory[s.num]||[];
+        const lastH=history[history.length-1];
+        if(!lastH) return `<div class="final-row">
+          <div class="final-stage-label">STAGE ${s.num} · ${s.name}</div>
+          <div class="final-symbols" style="color:var(--text3);font-size:12px;">미완료</div>
+        </div>`;
+        const sec=extractSections(lastH.feedback);
+        const symbols=symbolsFromCounts(lastH.counts);
+        return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.6rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+            <div style="font-size:13px;font-weight:700;">STAGE ${s.num} · ${s.name}</div>
+            <div style="font-size:13px;letter-spacing:2px;">${symbols}</div>
+          </div>
+          ${sec.good?`<div style="font-size:12px;color:var(--success);margin-bottom:0.4rem;">👍 ${toHtml(sec.good.split('\n')[0])}</div>`:''}
+          ${sec.fix?`<div style="font-size:12px;color:var(--warn);">💬 ${toHtml(sec.fix.split('\n')[0])}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div style="margin-top:1.5rem;text-align:center;">
+      <button class="btn-retry" onclick="backToStages()" style="width:auto;padding:0.6rem 1.2rem;display:inline-block">← 다시 보기</button>
+    </div>
+  </div>`;
+}
+
+function backToStages(){
+  document.getElementById('stage-nav').style.display='flex';
+  renderStagePanels();
+  switchStage(currentStage);
+}
+
+const selectedFiles={};
+function handleFileSelect(e,n){const f=e.target.files[0];if(f)setFile(f,n);}
+function handleDragOver(e,n){e.preventDefault();document.getElementById(`upload-zone-${n}`)?.classList.add('dragover');}
+function handleDragLeave(e,n){document.getElementById(`upload-zone-${n}`)?.classList.remove('dragover');}
+function handleDrop(e,n){
+  e.preventDefault();document.getElementById(`upload-zone-${n}`)?.classList.remove('dragover');
+  const f=e.dataTransfer.files[0];
+  if(f?.type==='application/pdf')setFile(f,n);else showToast('PDF 파일만 업로드 가능합니다.');
+}
+function setFile(file,n){
+  if(file.size>50*1024*1024){showToast('50MB 초과. 압축 후 다시 시도해주세요.');return;}
+  selectedFiles[n]=file;
+  document.getElementById(`upload-zone-${n}`)?.classList.add('has-file');
+  const fn=document.getElementById(`filename-${n}`);if(fn)fn.textContent=`✓ ${file.name}`;
+  const btn=document.getElementById(`btn-diagnose-${n}`);if(btn)btn.disabled=false;
+}
+function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+
+async function runDiagnosis(stageNum){
+  const file=selectedFiles[stageNum];if(!file)return;
+  const attemptNum=(stageAttempts[stageNum]||0)+1;
+  showLoading('AI가 PDF를 분석하는 중이에요...');
+  try{
+    const pdfBase64=await fileToBase64(file);
+    const raw=await callGemini(pdfBase64,stageNum,attemptNum);
+    const{cleanText,itemScores,tags}=parseFeedback(raw);
+    const scoreTotal=itemScores.reduce((a,b)=>a+b,0);
+    const scoreMax=SCORE_MAX[stageNum];
+    const countsJson={pass:itemScores.filter(s=>s===2).length,warn:itemScores.filter(s=>s===1).length,fail:itemScores.filter(s=>s===0).length};
+
+    showLoading('결과를 저장하는 중이에요...');
+    const weakItems=JSON.stringify(itemScores.map((s,i)=>s<2?i+1:null).filter(v=>v!==null));
+    const attempt=await saveAttempt(currentStudent.id,stageNum,attemptNum,cleanText,countsJson,tags,scoreTotal,scoreMax,weakItems);
+    if(attempt?.id&&itemScores.length>0)await saveItemScores(attempt.id,itemScores);
+
+    // 파일 업로드 초기화
+    const fi=document.getElementById(`file-input-${stageNum}`);if(fi)fi.value='';
+    selectedFiles[stageNum]=null;
+    const fn=document.getElementById(`filename-${stageNum}`);if(fn)fn.textContent='';
+    const uz=document.getElementById(`upload-zone-${stageNum}`);if(uz)uz.classList.remove('has-file');
+
+    stageAttempts[stageNum]=attemptNum;
+    if(!stageHistory[stageNum])stageHistory[stageNum]=[];
+    stageHistory[stageNum].push({attempt_num:attemptNum,feedback:cleanText,counts:countsJson,created_at:new Date().toISOString()});
+
+    // 첫 진단 완료 시 다음 스테이지 잠금 해제 (FINAL 포함)
+    if(attemptNum===1&&stageNum<6&&stageNum+1>unlockedStage){
+      unlockedStage=stageNum+1;
+      await updateUnlockedStage(currentStudent.id,stageNum+1);
+    }
+    // 3회 소진 시 강제 잠금 해제 (1~5만 해당)
+    if(attemptNum===3&&stageNum<6&&stageNum+1>unlockedStage){
+      unlockedStage=stageNum+1;
+      await updateUnlockedStage(currentStudent.id,stageNum+1);
+    }
+
+    const toastMsg=stageNum===6?'🏆 FINAL 종합 심사 완료!':`${attemptNum}회차 진단 완료!`;
+
+    renderStageNav();
+    renderStagePanels();
+    switchStage(stageNum);
+    displayResult(stageNum,cleanText,countsJson);
+    showToast(toastMsg);
+
+  }catch(e){showToast('오류: '+e.message);console.error(e);}finally{hideLoading();}
+}
+
+function displayResult(stageNum,text,counts){
+  const box=document.getElementById(`result-box-${stageNum}`);if(!box)return;
+  box.style.display='block';
+  const sec=extractSections(text);
+  const d=document.getElementById(`result-diagnose-${stageNum}`);
+  const g=document.getElementById(`result-good-${stageNum}`);
+  const f=document.getElementById(`result-fix-${stageNum}`);
+  const isFinal=stageNum===6;
+  if(d)d.innerHTML=`<div class="result-section-title">${isFinal?'종합 평가':'진단 결과'}</div>
+    ${!isFinal?`<div style="font-size:12px;color:var(--text3);margin-bottom:0.75rem;">✅ 완료 &nbsp; ⚠️ 보완 &nbsp; ❌ 누락</div>`:''}
+    <div class="result-text">${toHtml(sec.diagnose)||'—'}</div>`;
+  if(g)g.innerHTML=`<div class="result-section-title">강점</div><div class="result-text">${toHtml(sec.good)||'(내용 없음)'}</div>`;
+  if(f)f.innerHTML=`<div class="result-section-title">개선 사항</div><div class="result-text">${sec.fix?toHtml(sec.fix):isFinal?'완벽합니다! 최종 제출 준비가 되었습니다. 🎉':'개선이 필요한 항목이 없습니다. 다음 단계로 넘어가세요!'}</div>`;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('btn-login').addEventListener('click',async()=>{
+  const number=document.getElementById('input-student-number').value.trim();
+  const password=document.getElementById('input-password').value.trim();
+  const err=document.getElementById('login-error');
+  if(!number||!password){err.textContent='ID와 비밀번호를 입력해주세요.';return;}
+  // 관리자 체크
+  if(number==='admin'&&password==='admin123'){
+    window.location.href='admin.html';
+    return;
+  }
+  showLoading('로그인 중...');
+  try{
+    const student=await getStudent(number,password);
+    if(!student){err.textContent='학번 또는 비밀번호가 올바르지 않습니다.';return;}
+    await initSession(student);
+  }catch(e){err.textContent='오류: '+e.message;}finally{hideLoading();}
+});
+
+document.getElementById('input-password').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-login').click();});
+
+document.getElementById('btn-logout').addEventListener('click',()=>{
+  currentStudent=null;stageAttempts={1:0,2:0,3:0,4:0,5:0,6:0};currentStage=1;unlockedStage=1;stageHistory={1:[],2:[],3:[],4:[],5:[],6:[]};
+  localStorage.removeItem('sb_student');
+  document.getElementById('screen-main').classList.remove('active');
+  showLoginScreen();
+  document.getElementById('input-student-number').value='';
+  document.getElementById('input-password').value='';
+  document.getElementById('login-error').textContent='';
+  document.getElementById('stage-nav').style.display='flex';
+});
+
+async function initSession(student){
+  currentStudent=student;
+  localStorage.setItem('sb_student',JSON.stringify(student));
+  showLoading('데이터 불러오는 중...');
+  try{
+    const[attempts,history,unlocked]=await Promise.all([
+      getAttemptCounts(student.id),
+      getStudentHistory(student.id),
+      getUnlockedStage(student.id)
+    ]);
+    stageAttempts=attempts;
+    stageHistory=history;
+    unlockedStage=Math.max(unlocked||1,1);
+    currentStage=unlockedStage;
+    document.getElementById('topbar-student-name').textContent=`${student.name} (${student.student_number})`;
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-main').classList.add('active');
+    renderStageNav();
+    renderStagePanels();
+    switchStage(currentStage);
+  }finally{hideLoading();}
+}
+
+window.addEventListener('load',async()=>{
+  const saved=localStorage.getItem('sb_student');
+  if(saved){
+    try{await initSession(JSON.parse(saved));}
+    catch(e){localStorage.removeItem('sb_student');hideLoading();showLoginScreen();}
+  } else {
+    showLoginScreen();
+  }
+});
+
+function showLoginScreen(){
+  document.getElementById('screen-login').classList.add('active');
+}
+
+function showLoading(t='처리 중...'){document.getElementById('loading-text').textContent=t;document.getElementById('loading').classList.add('visible');}
+function hideLoading(){document.getElementById('loading').classList.remove('visible');}
+let toastTimer;
+function showToast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
