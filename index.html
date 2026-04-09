@@ -610,7 +610,7 @@
 // ═══════════════════════════════════════
 const SUPABASE_URL = 'https://xbgoxwlplsuxazrbsqly.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiZ294d2xwbHN1eGF6cmJzcWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzQwNDQsImV4cCI6MjA5MTI1MDA0NH0.HPVdlebavUu-jJzdp2eAWQChUsbPdcVcxL3vMz_NDe0';
-const GEMINI_KEY = 'AIzaSyCpLSqlaeRn1X8tT2cxITsZMsLncEz-yxU'; // 새로 발급받은 키로 교체
+const GEMINI_KEY = 'YOUR_GEMINI_API_KEY'; // 새로 발급받은 키로 교체
 
 // ═══════════════════════════════════════
 // 스테이지 데이터
@@ -917,7 +917,7 @@ function renderStagePanels() {
           onchange="handleFileSelect(event, ${s.num})">
         <div class="upload-icon">📄</div>
         <div class="upload-text">PDF 파일을 클릭하거나 드래그하여 업로드</div>
-        <div class="upload-sub">최대 20MB · PDF 형식만 가능</div>
+        <div class="upload-sub">최대 50MB · PDF 형식만 가능 · 이미지 해상도 72~96dpi 권장</div>
         <div class="upload-filename" id="filename-${s.num}"></div>
       </div>
 
@@ -980,6 +980,10 @@ function handleDrop(event, stageNum) {
 }
 
 function setFile(file, stageNum) {
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('파일 용량이 50MB를 초과합니다. PDF를 압축해주세요.');
+    return;
+  }
   selectedFiles[stageNum] = file;
   const zone = document.getElementById(`upload-zone-${stageNum}`);
   const filename = document.getElementById(`filename-${stageNum}`);
