@@ -306,7 +306,7 @@ ${s.items.map(i=>`${i.num}. ${i.name}`).join('\n')}
 item_scores: ${s.items.length}개 순서대로 (✅=2,⚠️=1,❌=0)
 tags: #LOGIC_GAP/#PHYSICAL_CONFLICT/#TARGET_MISMATCH/#SCALE_ERROR/#ETHICS_FLAG 중 선택. 없으면 []`;
 
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'application/pdf',data:pdfBase64}},{text:`STAGE ${stageNum} 평가. 현재 ${al}.`}]}],generationConfig:{maxOutputTokens:2048,temperature:0.3}})
   });
